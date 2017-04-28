@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+  <style>
+    body {
+      margin: 0;
+    }
+    
+    canvas {
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="stage"></div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/85/three.min.js"></script>
+  <script src="TrackballControls.js"></script>
+
+  <script>
+    init();
+    setDirectionalLight();
+    setAmbientLight();
+    createEarth();
+    createStars();
+    helper();
+    trackBallControls();
+    render();
+
+    /*********************************
+     most necessary
+     *********************************/
+    function init() {
+      //create stage
+      scene = new THREE.Scene();
+      //set camera
+      camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 10000);
+      camera.position.set(0, 200, 800);
+      //create renderer
+      renderer = new THREE.WebGLRenderer();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      document.body.appendChild(renderer.domElement);
+    }
+
+
+    /*********************************
+     create light sources
+     *********************************/
+    /***directional light***/
+    function setDirectionalLight() {
+      light = new THREE.DirectionalLight(0xffffff, 1);
+      light.position.set(0, 300, 80);
+      scene.add(light);
+    }
+
+    /***ambient light***/
+    function setAmbientLight() {
+      ambient = new THREE.AmbientLight(0x222222);
+      scene.add(ambient);
+    }
+
+
+    /*********************************
+     create objects
+     *********************************/
+    /***earth***/
+    function createEarth() {
+      loader = new THREE.TextureLoader();
+      loader.load('earth.png', function (texture) {
+        geometry = new THREE.SphereGeometry(300, 50, 50);
+        material = new THREE.MeshPhongMaterial({
+          map: texture,
+          overdraw: 0.5
+        });
+        earth = new THREE.Mesh(geometry, material);
+        scene.add(earth);
+      });
+    }
+
+    /***starry sky***/
+    function createStars() {
+      //create custom geometry
+      starsGeometry = new THREE.Geometry();
+      //set the random values to x, y, z axes
+      for (var i = 0; i < 10000; i++) {
+        var star = new THREE.Vector3();
+        star.x = THREE.Math.randFloatSpread(2000);
+        star.y = THREE.Math.randFloatSpread(2000);
+        star.z = THREE.Math.randFloatSpread(2000);
+        starsGeometry.vertices.push(star)
+      }
+      //create the texture
+      var loader = new THREE.TextureLoader();
+      loader.load(
+        'star2.png',
+        function (texture) {
+          var starsMaterial = new THREE.PointsMaterial({
+            map: texture,
+            size: 10,
+            transparent: true,
+          });
+        },
+      );
+      texture = THREE.ImageUtils.loadTexture('star2.png');
+      //create material for stars
+      starsMaterial = new THREE.PointsMaterial({
+        map: texture,
+        size: 10,
+        transparent: true
+      })
+      starField = new THREE.Points(starsGeometry, starsMaterial);
+      scene.add(starField);
+    }
+
+    /*********************************
+     helper function
+     *********************************/
+    function helper() {
+      gridHelper = new THREE.GridHelper(1000, 20);
+      scene.add(gridHelper);
+      axisHelper = new THREE.AxisHelper(1000);
+      scene.add(axisHelper);
+      lightHelper = new THREE.DirectionalLightHelper(light, 20);
+      scene.add(lightHelper);
+    }
+
+    /*********************************
+     control function
+     *********************************/
+    function trackBallControls() {
+      controls = new THREE.TrackballControls(camera);
+    }
+
+    /*********************************
+     rendering function
+     *********************************/
+    function render() {
+      requestAnimationFrame(render);
+      //rotate cube
+      earth.rotation.x += 0.01;
+      earth.rotation.y += 0.01;
+      if (typeof controls === 'undefined') {} else {
+        controls.update();
+      }
+      renderer.render(scene, camera);
+    };
+  </script>
+
+</body>
+
+</html>
